@@ -1,0 +1,43 @@
+name: build-and-test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ make python3-pytest
+
+      - name: Build
+        run: |
+          make clean
+          make
+
+      - name: List players
+        run: make list
+
+      - name: Smoke test
+        run: make smoke-test SEED=1
+
+      - name: Regression tests
+        run: make regression-test
+
+      - name: AddressSanitizer and UndefinedBehaviorSanitizer
+        run: |
+          make sanitize
+          ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+          UBSAN_OPTIONS=halt_on_error=1 \
+          ./Game --seed=1 --input=config/default.cnf --output=/tmp/sanitized.res \
+            Gen765 Basic_player Demo Null

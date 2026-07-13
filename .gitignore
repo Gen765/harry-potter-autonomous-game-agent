@@ -1,0 +1,23 @@
+# --- Build artefacts ---
+Game
+Game.exe
+*.o
+*.obj
+*.exe
+Makefile.deps
+
+# --- Match outputs ---
+output/*
+!output/.gitkeep
+*.res
+
+# --- Python ---
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# --- IDE / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
