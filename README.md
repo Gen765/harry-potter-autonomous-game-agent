@@ -20,14 +20,13 @@ baseline players required to run local matches. Those parts are identified in
 
 ## 🧠 Agent strategy
 
-```mermaid
-flowchart TD
-    A[Read board state] --> B[Find controlled wizards]
-    B --> C[Choose books, rivals or special targets]
-    C --> D[Search routes with BFS]
-    D --> E[Apply phase-specific priorities]
-    E --> F[Issue one action per wizard]
-```
+<p align="center">
+  <img
+    src="docs/images/diagrams/agent-decision-cycle.svg"
+    alt="Decision cycle from reading the board through target selection and BFS routing to one action per wizard"
+    width="760"
+  >
+</p>
 
 `Gen765` combines several small rule-based decisions rather than one global
 search:
