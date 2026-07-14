@@ -35,5 +35,5 @@
 | Null | 3 | 10 | 0 | 703.00 |
 | Null | 4 | 10 | 0 | 863.20 |
 
-This summary reports measured outcomes from bundled replay files.
-It does not claim an external competition ranking unless explicitly evidenced.
+These are local matches against the bundled baseline players, not official
+tournament results.

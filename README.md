@@ -1,93 +1,95 @@
-# Autonomous Game Agent (Harry Potter Edition)
+# 🧙 Autonomous Game Agent
 
-C++17 autonomous agents for the FIB–UPC EDA tournament. The repository ships the
-authorized course engine, an HTML replay viewer, four bundled players, Python
-simulation helpers, and automated smoke/regression checks.
+![C++17](https://img.shields.io/badge/C%2B%2B-17-00599C)
+[![Build and tests](https://github.com/Gen765/harry-potter-autonomous-game-agent/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/Gen765/harry-potter-autonomous-game-agent/actions/workflows/build-and-test.yml)
+![Regression tests](https://img.shields.io/badge/regression%20tests-3%20passing-2ea44f)
 
-> **Category:** Academic project — EDA course, FIB–UPC.
-> **Type:** Individual player implementation on a shared course engine.
+This is my C++ player for the FIB-UPC EDA strategy-game tournament. Each round
+it controls a group of wizards on a grid, choosing between collecting books,
+converting rivals, helping allies and preparing spells.
 
-## Bundled players
+## 👨‍💻 My contribution
 
-| Registered name | Source file | Role |
-| --- | --- | --- |
-| `Gen765` | `AIGen7.cc` | Primary tournament agent |
-| `Basic_player` | `AIBasic_player.cc` | Reproducible baseline opponent |
-| `Demo` | `AIDemo.cc` | Course demo player |
-| `Null` | `AINull.cc` | No-op reference player |
+My tournament player is implemented in [`AIGen7.cc`](AIGen7.cc). I worked on
+its target selection, pathfinding and phase-specific rules, then added scripts
+to repeat matches over different seeds and starting positions.
 
-Run `./Game --list` after building to verify exactly these four names.
+The repository also contains the course engine, replay viewer and three
+baseline players required to run local matches. Those parts are identified in
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
-## Requirements
+## 🧠 Agent strategy
 
-- GCC or Clang with C++17 support. Verified locally with **g++ 11.4.0** on WSL Ubuntu.
-- GNU Make.
-- Python 3.10+ with `pytest` for regression tests.
+```mermaid
+flowchart TD
+    A[Read board state] --> B[Find controlled wizards]
+    B --> C[Choose books, rivals or special targets]
+    C --> D[Search routes with BFS]
+    D --> E[Apply phase-specific priorities]
+    E --> F[Issue one action per wizard]
+```
 
-## Build and smoke test
+`Gen765` combines several small rule-based decisions rather than one global
+search:
+
+- BFS pathfinding towards books and capturable enemy wizards;
+- per-wizard target selection and movement;
+- special handling for conversion, ghosts and spell ingredients; and
+- fallback rules when a preferred target or route is unavailable.
+
+The code keeps the shape of the original tournament entry—large decision
+functions, Spanish helper names and plenty of heuristics. A shorter walkthrough
+is available in [`docs/strategy.md`](docs/strategy.md).
+
+## 🏆 Local results
+
+The recorded evaluation uses ten seeds and rotates every player through each
+starting position, for a total of 40 matches.
+
+| Player | Wins | Mean score |
+| --- | ---: | ---: |
+| `Gen765` | 40 / 40 | 10,551.23 |
+| `Basic_player` | 0 / 40 | 5,908.60 |
+| `Demo` | 0 / 40 | 1,420.60 |
+| `Null` | 0 / 40 | 720.48 |
+
+These are local baseline matches, not an official tournament ranking. The
+breakdown by seed and starting position is in
+[`docs/tournament-summary.md`](docs/tournament-summary.md), with the source rows
+in [`docs/tournament-results.csv`](docs/tournament-results.csv).
+
+## 🎬 Replay viewer
+
+Tournament runs produce `.res` replay files. Prepare one for the bundled HTML
+viewer with:
+
+```sh
+python3 scripts/prepare_viewer.py --input output/tournament/seed01-rot0.res
+```
+
+Then open `Viewer/viewer.html` and load the prepared replay.
+
+## 🚀 Build and tests
+
+Requirements: a C++17 compiler, GNU Make and Python 3.10+.
 
 ```sh
 make clean
 make
 make list
 make smoke-test SEED=1
-```
-
-## Tournament reproduction
-
-```sh
-python3 scripts/run_tournament.py --seeds 10 --rotations 4
-python3 scripts/prepare_viewer.py --input output/tournament/seed01-rot0.res
-```
-
-This produces **40 matches** (10 seeds × 4 rotations), a CSV file and a
-Markdown summary under `output/tournament/`.
-
-The release-preparation run completed all 40 matches at round 200. `Gen765`
-won all 40 against the three included baselines, with mean score 10,551.23.
-These are reproducible local-baseline results, not an external tournament
-ranking. The aggregate evidence is committed as
-[`docs/tournament-summary.md`](docs/tournament-summary.md) and
-[`docs/tournament-results.csv`](docs/tournament-results.csv).
-
-## Automated tests
-
-```sh
+python3 -m pip install -r requirements-dev.txt
 make regression-test
-```
-
-## Sanitizer build (Linux)
-
-```sh
 make sanitize
-./Game --list
 ```
 
-## Viewer
+[`docs/testing.md`](docs/testing.md) describes the three regression checks and
+a memory-management bug found with AddressSanitizer.
 
-Open `Viewer/viewer.html` in a browser. Use `scripts/prepare_viewer.py` to copy a
-`.res` replay into `Viewer/sample.out`.
+## 💡 What I learned
 
-## Verification status
-
-**Core gameplay and the full local tournament are verified.** A clean Linux
-build, four-player list, 3 regression tests, 40 complete 200-round matches and
-sanitizer checks have been verified. The exporter records CSV data plus
-per-player and per-position statistics. See
-[`docs/results.md`](docs/results.md) for the current evidence boundary.
-
-## Third-party code
-
-The game engine and viewer are course materials. See
-[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
-
-## Documentation
-
-- [`docs/architecture.md`](docs/architecture.md)
-- [`docs/strategy.md`](docs/strategy.md)
-- [`docs/results.md`](docs/results.md)
-
-## License
-
-No permissive license is asserted for the course engine or tournament materials.
-The custom player code is described with academic context only.
+- How simple heuristics interact in a changing multi-unit environment.
+- Where repeated BFS searches are useful and where coordination would improve
+  them.
+- How deterministic seeds, batch matches and sanitizers make an agent easier to
+  debug.

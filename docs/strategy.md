@@ -1,35 +1,34 @@
-# Strategy Notes (`Gen765`)
+# Strategy notes for `Gen765`
 
-This document summarises the decision policy implemented in `AIGen7.cc` without
-claiming properties that were not measured in the bundled tournament scripts.
+The player controls several wizards at once, but each unit ultimately receives
+one action per round. `AIGen7.cc` builds those actions from a set of local rules
+and breadth-first searches.
 
-## High-level behaviour
+## Choosing a target
 
-The primary agent coordinates multiple wizards on a large grid with books,
-convertible enemy wizards, ghosts and spell ingredients. The implementation
-combines:
+Books are the default objective. Nearby enemy wizards become useful targets
+when they can be converted, and some situations switch priority to helping a
+wizard, dealing with ghosts or collecting spell ingredients. The code evaluates
+these cases in order and keeps a fallback when the preferred target is not
+reachable.
 
-- Target selection for books and capturable enemy wizards.
-- Pathfinding over corridor cells to reach short-term objectives.
-- Phase-aware handling of conversion, resting ghosts and spell preparation.
-- Per-wizard action assignment each round through the course `Player` API.
+## Movement
+
+Searches work over the current board and return the first direction on a path
+to the selected objective. Before issuing a move, the player checks the target
+cell and applies the relevant rule for corridors, occupied positions and
+special tiles. This is repeated for every controlled wizard each round.
+
+The approach is deliberately heuristic. It was practical for a timed course
+tournament and easy to adjust between matches, although it also led to large
+functions and some repeated searches in the final source.
 
 ## Baseline comparison
 
-`Basic_player` intentionally remains a weaker reference:
+`Basic_player` is a simpler reference player. It runs an independent BFS for
+each wizard, chooses the nearest book or convertible opponent and takes one
+step towards it. It does not coordinate targets or use the extra phase-specific
+rules in `Gen765`.
 
-- Independent BFS per wizard without global coordination.
-- Nearest book or capturable enemy wizard as the target.
-- One step along the shortest path when available; otherwise no move.
-
-## Evidence limits
-
-Tournament CSVs and summaries under `output/tournament/` report wins and total
-scores from bundled matches. They **do not** prove an official external ranking
-unless a separate competition artifact is provided.
-
-## Reproducibility
-
-Given the same seed, configuration and player order, the engine replay is
-deterministic. Use `scripts/run_tournament.py` to regenerate the published CSV
-and Markdown summary.
+Run `scripts/run_tournament.py` to compare the players over several seeds and
+starting-position rotations.
